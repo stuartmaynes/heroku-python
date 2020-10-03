@@ -1,5 +1,5 @@
 # Heroku Platform Client
-
+**Not intended for use in production yet**.
 A Python client for the Heroku Platfrom API.
 
 ## Features
@@ -10,6 +10,6 @@ A Python client for the Heroku Platfrom API.
 ## Requirements
 - Python "3.8"
 - Requests
-**Dev packages**
+- **Dev packages**
 - Pytest
 - Pylint
