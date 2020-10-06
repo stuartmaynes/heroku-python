@@ -1,7 +1,30 @@
 import os
 import pytest
-from unittest.mock import MagicMock
+from requests import Response
 from heroku.heroku import Heroku
+
+@pytest.fixture()
+def heroku_mock(mocker):
+    # Given
+    heroku = Heroku()
+    mocker.patch.object(heroku, 'request')
+    return heroku
+
+@pytest.fixture()
+def heroku_session_mock(mocker):
+    # Given
+    heroku = Heroku()
+    mocker.patch.object(heroku.session, 'request')
+    return heroku
+
+
+class MockResponse():
+
+    status_code = 200
+
+    def json(self):
+        return []
+
 
 class TestHerokuClient:
 
@@ -37,37 +60,67 @@ class TestHerokuClient:
             set(heroku.session.headers.items())
         )
 
-    def test_calling_the_get_method_calls_requests_get_method(self):
+    def test_calling_the_get_method_calls_requests_method(self, heroku_mock):
+        #  When
+        heroku_mock.get('endpoint/foo', params={})
+        # Then
+        heroku_mock.request.assert_called_with('GET', 'endpoint/foo',  params={})
+
+    def test_calling_the_post_method_calls_requests_method(self, heroku_mock):
+        #  When
+        heroku_mock.post('endpoint/foo', data={})
+        # Then
+        heroku_mock.request.assert_called_with('POST', 'endpoint/foo', data={})
+
+    def test_calling_the_patch_method_calls_requests_method(self, heroku_mock):
+        #  When
+        heroku_mock.patch('endpoint/foo', data={})
+        # Then
+        heroku_mock.request.assert_called_with('PATCH', 'endpoint/foo', data={})
+
+    def test_calling_the_put_method_calls_requests_method(self, heroku_mock):
+        #  When
+        heroku_mock.put('endpoint/foo', data={})
+        # Then
+        heroku_mock.request.assert_called_with('PUT', 'endpoint/foo', data={})
+
+    def test_calling_the_delete_method_calls_requests_method(self, heroku_mock):
+        #  When
+        heroku_mock.delete('endpoint/foo')
+        # Then
+        heroku_mock.request.assert_called_with('DELETE', 'endpoint/foo')
+
+    def test_return_value_the_http_verb_method(self, heroku_session_mock):
+        heroku_session_mock.get('endpoint/foo', params={})
+        heroku_session_mock.session.request.assert_called_with(
+            'GET', 'endpoint/foo', params={}
+        )
+
+        heroku_session_mock.post('endpoint/foo', data={})
+        heroku_session_mock.session.request.assert_called_with(
+            'POST', 'endpoint/foo', data={}
+        )
+
+        heroku_session_mock.patch('endpoint/foo', params={})
+        heroku_session_mock.session.request.assert_called_with(
+            'PATCH', 'endpoint/foo', params={}
+        )
+
+        heroku_session_mock.put('endpoint/foo', data={})
+        heroku_session_mock.session.request.assert_called_with(
+            'PUT', 'endpoint/foo', data={}
+        )
+
+        heroku_session_mock.delete('endpoint/foo')
+        heroku_session_mock.session.request.assert_called_with(
+            'DELETE', 'endpoint/foo'
+        )
+
+    def test_json_method_is_called_on_returned_response(self, mocker):
+        mock_response = MockResponse()
+        mocker.patch.object(mock_response, 'json', lambda: [{'key': 'value'}])
+
         heroku = Heroku()
-        heroku.session.get = MagicMock(return_value={})
-        heroku.get('endpoint/foo', params={})
+        mocker.patch.object(heroku.session, 'request', lambda x, y: mock_response)
 
-        heroku.session.get.assert_called_with('endpoint/foo',  params={})
-
-    def test_calling_the_post_method_calls_requests_post_method(self):
-        heroku = Heroku()
-        heroku.session.post = MagicMock(return_value={})
-        heroku.post('endpoint/foo', data={})
-
-        heroku.session.post.assert_called_with('endpoint/foo', data={})
-
-    def test_calling_the_patch_method_calls_requests_patch_method(self):
-        heroku = Heroku()
-        heroku.session.patch = MagicMock(return_value={})
-        heroku.patch('endpoint/foo', data={})
-
-        heroku.session.patch.assert_called_with('endpoint/foo', data={})
-
-    def test_calling_the_put_method_calls_requests_put_method(self):
-        heroku = Heroku()
-        heroku.session.put = MagicMock(return_value={})
-        heroku.put('endpoint/foo', data={})
-
-        heroku.session.put.assert_called_with('endpoint/foo', data={})
-
-    def test_calling_the_delete_method_calls_requests_delete_method(self):
-        heroku = Heroku()
-        heroku.session.delete = MagicMock(return_value={})
-        heroku.delete('endpoint/foo')
-
-        heroku.session.delete.assert_called_with('endpoint/foo')
+        assert heroku.get('endpoint/foo') == [{'key': 'value'}]
