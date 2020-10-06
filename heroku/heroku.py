@@ -19,33 +19,40 @@ class Heroku:
 
         self.session.headers.update(headers)
 
-    def delete(self, endpoint):
+    def delete(self, endpoint, *args, **kwargs):
         """Return the result of making a DELETE
         request to the Heroku Platform API"""
 
-        return self.session.delete(endpoint)
+        return self.request("DELETE", endpoint, *args, **kwargs)
 
     def get(self, endpoint, *args, **kwargs):
         """Return the result of making a GET
         request to the Heroku Platform API"""
 
-        return self.session.get(endpoint, *args, **kwargs)
+        return self.request("GET", endpoint, *args, **kwargs)
 
     def patch(self, endpoint, *args, **kwargs):
         """Return the result of making a PATCH
         request to the Heroku Platform API"""
 
-        return self.session.patch(endpoint, *args, **kwargs)
+        return self.request("PATCH", endpoint, *args, **kwargs)
 
     def put(self, endpoint, *args, **kwargs):
         """Return the result of making a PUT
         request to the Heroku Platform API"""
 
-        return self.session.put(endpoint, *args, **kwargs)
+        return self.request("PUT", endpoint, *args, **kwargs)
 
     def post(self, endpoint, *args, **kwargs):
         """Return the result of making a POST
         request to the Heroku Platform API"""
 
-        return self.session.post(endpoint, *args, **kwargs)
+        return self.request("POST", endpoint, *args, **kwargs)
+
+    def request(self, method, endpoint, *args, **kwargs):
+        """Return the JSON response from the request
+        """
+        self.response = self.session.request(method, endpoint, *args, **kwargs)
+
+        return self.response.json()
 
